@@ -100,5 +100,5 @@ Above script reads images from cropped faces directory, does age-prediction and 
 
 ## Acknowledgments
 
-* https://github.com/Raschka-research-group/coral-cnn/compare
+* https://github.com/Raschka-research-group/coral-cnn/
 * Consistent Rank Logits for Ordinal Regression with Convolutional Neural Networks https://arxiv.org/abs/1901.07884
