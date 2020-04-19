@@ -30,7 +30,7 @@ learning_rate = 0.0005
 num_epochs = 200
 
 # Architecture
-NUM_CLASSES = 40
+NUM_CLASSES = 4
 BATCH_SIZE = 256
 GRAYSCALE = False
 
@@ -217,14 +217,14 @@ with open(cropped_images_path+'cropped-images-details.csv') as csv_file:
         		logits, probas = model(image)
         		predict_levels = probas > 0.5
         		predicted_label = torch.sum(predict_levels, dim=1)
-        		predicted_age=predicted_label.item() + 1
+        		predicted_age=predicted_label.item()
         	if predicted_age < min_age:
         		min_age=predicted_age
-    	if min_age <= 9:
+    	if min_age == 0:
     		f_filename_below9.write(original_image_name+'\n')
-    	elif min_age > 9 and min_age <=13:
+    	elif min_age == 1:
     		f_filename_9_13.write(original_image_name+'\n')
-    	elif min_age > 13 and min_age <18:
+    	elif min_age == 2:
     		f_filename_14_17.write(original_image_name+'\n')
     	else: 	
     		f_filename_above_18.write(original_image_name+'\n')

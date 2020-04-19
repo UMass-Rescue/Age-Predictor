@@ -1,45 +1,42 @@
-# coding: utf-8
-
-#############################################
-# Consistent Cumulative Logits with ResNet-34
-#############################################
-
-# Imports
-
+from torch_mtcnn import detect_faces
+from PIL import Image
+from os import listdir
+from os.path import isfile, join
+import json
+import csv
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import argparse
-import json
-import os
-from os import listdir
-from os.path import isfile, join
-import csv
+
 
 from torchvision import transforms
 from PIL import Image
 
-torch.backends.cudnn.deterministic = True
+
+#############################
+# parse arguments 
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', '--image_path',
+                    type=str,
+                    required=True)
+
+args = parser.parse_args()
+IMAGE_PATH = args.image_path
 
 ##########################
 # SETTINGS
 ##########################
-
-# Hyperparameters
-learning_rate = 0.0005
-num_epochs = 200
-
 # Architecture
-NUM_CLASSES = 40
-BATCH_SIZE = 256
+NUM_CLASSES = 4
 GRAYSCALE = False
 
 ##########################
 # MODEL
 ##########################
-DEVICE = torch.device('cpu')
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-print('something')
+#print('something')
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -153,77 +150,43 @@ def resnet34(num_classes, grayscale):
                    grayscale=grayscale)
     return model
 
-
-#######################
-### Initialize Model
-#######################
-
 model = resnet34(NUM_CLASSES, GRAYSCALE)
-print('test')
+#print('test')
 model.load_state_dict(torch.load('model/model.pt', map_location=DEVICE))
 model.eval()
 
-
-############################
-### open output files to write
-############################
-with open('configuration.json', 'r') as configfile:
-    config_info=json.load(configfile)
-print(config_info['output-files-directory'])
-output_file_path=config_info['output-files-directory']
-filename_below9=output_file_path+'below-9.txt'
-if os.path.exists(filename_below9):
-    os.remove(filename_below9)
-
-f_filename_below9=open(filename_below9, "a")
-
-filename_9_13=output_file_path+'range-9-13.txt'
-if os.path.exists(filename_9_13):
-    os.remove(filename_9_13)
-
-f_filename_9_13=open(filename_9_13, "a")
-
-filename_14_17=output_file_path+'range-14-17.txt'
-if os.path.exists(filename_14_17):
-    os.remove(filename_14_17)
-
-f_filename_14_17=open(filename_14_17, "a")
-
-filename_above_18=output_file_path+'above-18.txt'
-if os.path.exists(filename_above_18):
-    os.remove(filename_above_18)
-
-f_filename_above_18=open(filename_above_18, "a")
-############################
-### Load image from directory and estimate age
-############################
-cropped_images_path=config_info['cropped-faces-directory']
-cropped_files = [f for f in listdir(cropped_images_path) if isfile(join(cropped_images_path, f))]
-#print(cropped_files)
-image_files = [f for f in listdir(cropped_images_path) if isfile(join(cropped_images_path, f))]
-for img in image_files:
-    image = Image.open(cropped_images_path+img).convert('RGB')
-    custom_transform = transforms.Compose([transforms.Resize((128, 128)),transforms.CenterCrop((120, 120)),transforms.ToTensor()])
-    image = custom_transform(image)
-    #DEVICE = torch.device('cpu')
+def predict(img):
+    custom_transform = transforms.Compose([transforms.Resize((128, 128)),
+                                       transforms.CenterCrop((120, 120)),
+                                       transforms.ToTensor()])
+    image = custom_transform(img)
+    DEVICE = torch.device('cpu')
     image = image.to(DEVICE)
     image = image.unsqueeze(0)
     with torch.set_grad_enabled(False):
         logits, probas = model(image)
         predict_levels = probas > 0.5
         predicted_label = torch.sum(predict_levels, dim=1)
-        predicted_age=predicted_label.item() + 1
-    
-    if predicted_age <= 9:
-    	f_filename_below9.write(img+'\n')
-    elif predicted_age >= 9 and predicted_age <=13:
-    	f_filename_9_13.write(img+'\n')
-    elif predicted_age >= 14 and predicted_age <=17:
-    	f_filename_14_17.write(img+'\n')
-    else: 	
-    	f_filename_above_18.write(img+'\n')
+        predicted_age=predicted_label.item()
+        if predicted_age == 0:
+        	print('Predicted age class : below 9')
+        elif predicted_age == 1:
+        	print('Predicted age class : 9 - 13')
+        elif predicted_age == 2:
+        	print('Predicted age class : 14 - 17')
+        else:
+         	print('Predicted age class : 18 or above 18')
+    return predicted_age
 
-f_filename_below9.close
-f_filename_9_13.close
-f_filename_14_17.close
-f_filename_above_18.close
+#### Do the actual prediction
+
+#input_image='test.jfif'
+image = Image.open(IMAGE_PATH).convert('RGB')
+bounding_boxes, landmarks = detect_faces(image)
+print("No of faces in image", len(bounding_boxes))
+for i in range(len(bounding_boxes)):
+    print('Bounding box and age for face '+str(i+1))
+    area = (bounding_boxes[i][0],bounding_boxes[i][1],bounding_boxes[i][2],bounding_boxes[i][3])
+    cropped_image=image.crop(area)
+    print(bounding_boxes[0])
+    predict(cropped_image)
