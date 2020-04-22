@@ -43,7 +43,7 @@ In linux based system
 ```
 mkdir model
 ```
-Download pretrained model from <a href="https://drive.google.com/open?id=1Lo3CDSXLMg68lsLNkC7a523ScA6A-TBs">here</a>
+Download pretrained model from <a href="https://drive.google.com/open?id=104wwZcCl9Z3Nvq5NfxQoX7XyJHa3c95J">here</a>
 and save into "model" folder
 
 configuration.json file contains the paths for input images, cropped faces and output files.
