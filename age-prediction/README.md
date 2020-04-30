@@ -146,7 +146,17 @@ Precision:: "Below-9":0.373,	"9-13":0.365,	"14-17":0.402,	"18-above":0.840
 
 Recall::	"Below-9":0.339,	"9-13":0.642,	"14-17":0.734,	"18-above":0.382
 
+Run time: Image estimation took 38.5 seconds for 1002 images. Roughly 0.038 seconds per image
 
+## Training the age predictor from scratch
+I created a training dataset that can be accessed from following link : https://umass.box.com/s/r8qunx3fddxvag0aw3dgn2hm42jy1nvn
+
+Created a csv files for training images. Modify the paths in the script train.py. The script is avalable in training directory.
+```
+cd training
+python train.py --seed 1 --cuda 0 --outpath <directory-path-to-store-output> --imp_weight 1
+```
+I trained the models using above configuration. For more options check the paper and github link in acknowledgements.
 ## Acknowledgments
 
 * https://github.com/Raschka-research-group/coral-cnn/
