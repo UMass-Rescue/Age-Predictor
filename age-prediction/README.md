@@ -108,6 +108,8 @@ python3 predict-age-single-image.py -i <input-image-path>
 where <image-path> is the absolute path of image or name of image if it is located in same directory as this script
   
 ## Testing the age predictor
+Project is tested on my machine.
+
 Test program takes cropped faces as input. These images are placed in four directories representing four age classes "below-9", "9-13", "14-17" and "18-above". If cropped faces are not available a script is provided to crop the faces.
 Go to directory "test-scripts"
 ```
